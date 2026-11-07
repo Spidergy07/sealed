@@ -495,3 +495,19 @@
 - Free model notes: the first draft for EHT said "the label was checked against the Transaction Details address", but that order has no packing record. The notes are now rejected and replaced by a template when they claim a label check that was not recorded, claim delivery without a DELIVERED tracker, or leave out the tracking number or ZIP.
 - Refund-and-rebill on the spare capture 6CH777787A478920W ($11.50): refund 23E40083SR366924K COMPLETED, new checkout 88N18540V1500720S created with the same item.
 - Label photos: a 4x6 test label composited onto a real box photo (Wikimedia Commons, "Sealing a package with plastic tape for shipping", Meanwell Packaging, CC BY 2.0). zxing-js could not find the Code 128 start pattern when a black label frame shared the barcode rows, or when bars were resampled to fractional widths; zxing-cpp read both. Without the frame and with whole-pixel modules, zxing-js reads `42095131` + the tracking number and the bench records "from the barcode". When the barcode fails, the model's reading of the printed digits is used only if it passes the USPS check digit.
+
+### 2026-11-08 01:00 to 01:25 Thai: one clean run on production, sale to filed evidence
+
+| Time (UTC, 7 Nov) | Step | IDs |
+|---|---|---|
+| 18:03 | Sale created on sealed-silk.vercel.app, sandbox buyer paid (bank) | order 1CF72500HD2101448, capture 7DB592727C937090F, ELIGIBLE |
+| 18:07 | Phone-style photo of a label to the buyer's DM address: blocked (barcode read, ZIP 94105 vs 95131) | photo SHA-256 20311b42... |
+| 18:07 | Reprint to the PayPal address (EasyPost test), tracking pushed with Orders /track and read back | 9405500208192110885741, push debug_id f17718666e083 |
+| 18:16 | Buyer opened Item Not Received in Resolution Center. The filing page first showed the buyer our USPS number | PP-R-JPW-10197024 |
+| 18:17 to 18:19 | GET by id: INQUIRY OPEN, then INQUIRY UNDER_REVIEW, then CHARGEBACK UNDER_REVIEW with only a `self` link | |
+| 18:20 | Verified webhooks CUSTOMER.DISPUTE.CREATED (payload already says CHARGEBACK) and UPDATED; the case was attached to the sale through capture to order | |
+| 18:21 | provide_supporting_info appeared; notes drafted by the free model, approved, filed with the PDF | HTTP 200, debug_id f10460246e606 |
+
+- Third tracked case in a row that PayPal moved to CHARGEBACK within minutes. The one untracked case (SQX) is still INQUIRY with PROOF_OF_FULFILLMENT requested. So in this sandbox, tracking pushed before the case seems to send INR cases straight to CHARGEBACK, where only supporting info is accepted.
+- The capture call succeeded but the GET right after still said APPROVED with no captures. syncOrder now fills the view from the capture response when the read lags.
+- The provide-evidence multipart path is in the code but has not been filed live; the only case offering it (SQX) has no tracking to send.
