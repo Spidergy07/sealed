@@ -14,7 +14,7 @@ export default async function Home() {
           Check the box before you tape it. Sealed compares your shipping label and your buyer&apos;s messages with the
           PayPal order, so a used-gear sale stays eligible for Seller Protection.
         </p>
-        <p className="text-xs text-amber-700 dark:text-amber-400">PayPal sandbox. No real money moves.</p>
+        <p className="text-xs text-amber-700 dark:text-amber-400">PayPal sandbox. No real money moves. <Link href="/disputes" className="underline">Open cases</Link></p>
       </header>
 
       <form action={createSale} className="space-y-4 rounded-xl border border-neutral-200 dark:border-neutral-800 p-5">

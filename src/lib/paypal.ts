@@ -35,6 +35,26 @@ export async function pp<T = any>(method: string, path: string, body?: unknown, 
   return { status: r.status, debugId: r.headers.get("paypal-debug-id"), json };
 }
 
+// Multipart POST (dispute evidence). fetch sets the boundary, so no Content-Type here.
+export async function ppForm<T = any>(path: string, form: FormData): Promise<PpResponse<T>> {
+  const r = await fetch(BASE + path, { method: "POST", headers: { Authorization: `Bearer ${await token()}` }, body: form, cache: "no-store" });
+  const text = await r.text();
+  let json: any;
+  try { json = JSON.parse(text); } catch { json = text; }
+  return { status: r.status, debugId: r.headers.get("paypal-debug-id"), json };
+}
+
+// A dispute names the seller capture; the capture's "up" link names the order.
+export async function orderIdForCapture(captureId: string) {
+  const r = await pp("GET", `/v2/payments/captures/${encodeURIComponent(captureId)}`);
+  const up: string | undefined = r.json?.links?.find((l: any) => l.rel === "up")?.href;
+  return up?.match(/orders\/([A-Z0-9]+)/)?.[1];
+}
+
+export async function refundCapture(captureId: string) {
+  return pp("POST", `/v2/payments/captures/${encodeURIComponent(captureId)}/refund`, {}, { "PayPal-Request-Id": `refund-${captureId}` });
+}
+
 const alnum = (s: string) => s.replace(/[^A-Za-z0-9]/g, "").slice(0, 127);
 
 export async function createOrder(item: { title: string; price: string; serial: string }, returnUrl: string, cancelUrl: string) {
@@ -111,16 +131,23 @@ export async function addTracking(orderId: string, captureId: string, trackingNu
     carrier,
     notify_payer: true,
   }, { "PayPal-Request-Id": `track-${captureId}-${trackingNumber}` });
-  const back = await pp("GET", `/v1/shipping/trackers?transaction_id=${encodeURIComponent(captureId)}`);
-  const trackers: any[] = back.json?.trackers ?? [];
+  const back = await listTrackers(captureId);
   return {
     ok: push.status < 300,
     pushStatus: push.status,
     pushDebugId: push.debugId,
     error: push.status < 300 ? undefined : JSON.stringify(push.json).slice(0, 300),
     readBackDebugId: back.debugId,
-    onPayPal: trackers.map(t => ({ number: t.tracking_number as string, carrier: t.carrier as string, status: t.status as string })),
+    onPayPal: back.trackers,
   };
+}
+
+export async function listTrackers(captureId: string) {
+  const r = await pp("GET", `/v1/shipping/trackers?transaction_id=${encodeURIComponent(captureId)}`);
+  const trackers = ((r.json?.trackers ?? []) as any[]).map(t => ({
+    number: t.tracking_number as string, carrier: t.carrier as string, status: t.status as string, shipmentDate: t.shipment_date as string | undefined,
+  }));
+  return { debugId: r.debugId, trackers };
 }
 
 // verify-webhook-signature answers 200 even for bad signatures, so the decision is on verification_status.

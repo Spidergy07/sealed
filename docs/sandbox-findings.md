@@ -486,3 +486,12 @@
 - Orders v2 /track with an EasyPost test code: 201, and GET /v1/shipping/trackers?transaction_id= lists it as SHIPPED straight away. Several trackers on one capture are all listed.
 - Free vision: OpenRouter nvidia/nemotron-3.5-super-vl:free read both sample labels correctly in about 10 s (ZIP+4 included). Gemini free tier: gemini-flash-lite-latest with reasoning_effort low took about 2 s; gemini-flash-latest took 80 to 99 s.
 - Production run on https://sealed-silk.vercel.app: wrong-address sample blocked in 8.9 s, reprint to 95131-2021, tracking pushed and read back.
+
+### 2026-11-08 01:00 Thai: dispute agent, refund-and-rebill, phone-style label photos
+
+- GET dispute on PP-R-SQX-10196993 (INQUIRY, WAITING_FOR_SELLER_RESPONSE): evidences[] has PROOF_OF_FULFILLMENT with source REQUESTED_FROM_SELLER, added about 3 min after filing. Links: accept_claim, provide_evidence, send_message, escalate, make_offer.
+- The two CHARGEBACK cases (EHT, JTB) only offer accept_claim and provide_supporting_info.
+- provide-supporting-info on PP-R-EHT-10196991, multipart with an `input` JSON part `{notes}` and a PDF in a part named `supporting document`: HTTP 200, debug_id ca56e2ccca986. GET right after shows supporting_info[0] with the notes, the document name and a sandbox download URL, source SUBMITTED_BY_SELLER. Stage and status unchanged (CHARGEBACK, UNDER_REVIEW).
+- Free model notes: the first draft for EHT said "the label was checked against the Transaction Details address", but that order has no packing record. The notes are now rejected and replaced by a template when they claim a label check that was not recorded, claim delivery without a DELIVERED tracker, or leave out the tracking number or ZIP.
+- Refund-and-rebill on the spare capture 6CH777787A478920W ($11.50): refund 23E40083SR366924K COMPLETED, new checkout 88N18540V1500720S created with the same item.
+- Label photos: a 4x6 test label composited onto a real box photo (Wikimedia Commons, "Sealing a package with plastic tape for shipping", Meanwell Packaging, CC BY 2.0). zxing-js could not find the Code 128 start pattern when a black label frame shared the barcode rows, or when bars were resampled to fractional widths; zxing-cpp read both. Without the frame and with whole-pixel modules, zxing-js reads `42095131` + the tracking number and the bench records "from the barcode". When the barcode fails, the model's reading of the printed digits is used only if it passes the USPS check digit.

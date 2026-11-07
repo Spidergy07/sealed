@@ -1,5 +1,6 @@
 import { verifyWebhook } from "@/lib/paypal";
 import { put } from "@/lib/store";
+import { observe, viewDispute } from "@/lib/disputes";
 
 export async function POST(req: Request) {
   const event = await req.json().catch(() => null);
@@ -16,5 +17,9 @@ export async function POST(req: Request) {
     receivedAt: new Date().toISOString(),
     resource: event.resource,
   });
+  // The webhook carries the dispute itself, so the case is on the sale's record before the list API shows it.
+  if (v.verified && event.event_type.startsWith("CUSTOMER.DISPUTE.") && event.resource?.dispute_id) {
+    await observe(viewDispute(event.resource), `webhook ${event.event_type}`).catch(e => console.error("dispute observe", e));
+  }
   return new Response(null, { status: v.verified ? 200 : 202 });
 }

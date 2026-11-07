@@ -4,6 +4,7 @@ import { orderFlags } from "@/lib/rules";
 import { FlagCard } from "./flag-card";
 import { DmCheck } from "./dm-check";
 import { SAMPLE_DM } from "@/lib/dm";
+import { get } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export default async function Order({ params }: { params: Promise<{ id: string }
   const paid = !!o.captureId;
   const flags = paid ? orderFlags(o) : [];
   const a = o.shipTo;
+  const dispute = (await get("sales", o.id))?.dispute;
 
   return (
     <main className="mx-auto max-w-xl px-4 py-10 space-y-8">
@@ -55,6 +57,13 @@ export default async function Order({ params }: { params: Promise<{ id: string }
             Open packing bench
           </Link>
         </section>
+      )}
+
+      {dispute && (
+        <Link href={`/disputes/${dispute.id}`} className="block rounded-xl border border-red-300 dark:border-red-900 p-4">
+          <span className="font-medium">Buyer opened case {dispute.id}</span><br />
+          <span className="text-sm">{dispute.chain.at(-1)?.stage?.toLowerCase()} · {dispute.chain.at(-1)?.status?.replaceAll("_", " ").toLowerCase()}. Open the evidence pack.</span>
+        </Link>
       )}
 
       {flags.length > 0 && (

@@ -1,13 +1,14 @@
 "use client";
 import { useState, useTransition } from "react";
-import { checkLabel, pushTracking, reprintToPayPalAddress, type LabelResult, type ReprintResult, type TrackResult } from "./actions";
+import { checkLabel, pushTracking, refundAndRebill, reprintToPayPalAddress, type LabelResult, type RebillResult, type ReprintResult, type TrackResult } from "./actions";
 import { FlagCard } from "../flag-card";
 import type { Carrier } from "@/lib/label";
 
-// EasyPost test labels print VOID and all-zero tracking, so the samples carry their real test tracking codes.
+// Phone-style photos: a test label composited onto a real box photo (CC BY 2.0, Meanwell Packaging, Wikimedia Commons).
+// The barcodes decode; the tracking codes are EasyPost test codes, so they pass the USPS check digit.
 const SAMPLES = [
-  { file: "/samples/label-wrong-address.png", label: "Label to the buyer's new address", tracking: "9405500208192110884478" },
-  { file: "/samples/label-right-address.png", label: "Label to the PayPal address", tracking: "9405500208192110884461" },
+  { file: "/samples/box-label-wrong-address.jpg", label: "Box labeled to the buyer's new address" },
+  { file: "/samples/box-label-right-address.jpg", label: "Box labeled to the PayPal address" },
 ];
 
 async function sha256(buf: ArrayBuffer) {
@@ -27,8 +28,10 @@ async function toJpegDataUrl(blob: Blob) {
 
 async function decodeBarcode(url: string) {
   try {
-    const { BrowserMultiFormatReader } = await import("@zxing/browser");
-    return (await new BrowserMultiFormatReader().decodeFromImageUrl(url)).getText();
+    const [{ BrowserMultiFormatReader }, { BarcodeFormat, DecodeHintType }] = await Promise.all([import("@zxing/browser"), import("@zxing/library")]);
+    // Shipping labels carry 1D tracking barcodes; skipping 2D readers is faster and quieter.
+    const hints = new Map<any, any>([[DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128]], [DecodeHintType.TRY_HARDER, true]]);
+    return (await new BrowserMultiFormatReader(hints).decodeFromImageUrl(url)).getText();
   } catch {
     return null; // no readable barcode (VOID test labels, glare): the model's reading and check digit decide
   }
@@ -46,10 +49,11 @@ export function PackBench({ orderId, amount, paid }: { orderId: string; amount: 
   const [tracking, setTracking] = useState("");
   const [carrier, setCarrier] = useState<Carrier>("USPS");
   const [track, setTrack] = useState<TrackResult>();
+  const [rebill, setRebill] = useState<RebillResult>();
   const [pending, start] = useTransition();
   const [step, setStep] = useState("");
 
-  function run(blob: Blob, sampleTracking?: string) {
+  function run(blob: Blob) {
     setRes(undefined); setReprint(undefined); setTrack(undefined);
     start(async () => {
       const url = URL.createObjectURL(blob);
@@ -61,7 +65,7 @@ export function PackBench({ orderId, amount, paid }: { orderId: string; amount: 
       const r = await checkLabel(orderId, dataUrl, h, barcode);
       setRes(r);
       if ("tracking" in r) {
-        const t = r.tracking ?? (sampleTracking ? { number: sampleTracking, carrier: "USPS" as Carrier } : null);
+        const t = r.tracking;
         setTracking(t?.number ?? "");
         if (t) setCarrier(t.carrier);
       }
@@ -70,7 +74,7 @@ export function PackBench({ orderId, amount, paid }: { orderId: string; amount: 
   }
 
   async function loadSample(s: (typeof SAMPLES)[number]) {
-    run(await (await fetch(s.file)).blob(), s.tracking);
+    run(await (await fetch(s.file)).blob());
   }
 
   const read = res && "read" in res ? res : undefined;
@@ -89,7 +93,7 @@ export function PackBench({ orderId, amount, paid }: { orderId: string; amount: 
             onChange={e => { const f = e.target.files?.[0]; if (f) run(f); e.target.value = ""; }} />
         </label>
         <details className="text-sm">
-          <summary className="cursor-pointer text-neutral-600 dark:text-neutral-400">No label handy? Use an EasyPost test label</summary>
+          <summary className="cursor-pointer text-neutral-600 dark:text-neutral-400">No box handy? Use a sample photo</summary>
           <div className="mt-2 grid gap-2">
             {SAMPLES.map(s => <button key={s.file} disabled={pending} onClick={() => loadSample(s)} className={secondary}>{s.label}</button>)}
           </div>
@@ -128,11 +132,22 @@ export function PackBench({ orderId, amount, paid }: { orderId: string; amount: 
               <details className={`${secondary} text-left`}>
                 <summary className="cursor-pointer">Buyer insists: refund and re-bill</summary>
                 <p className="mt-2 text-sm font-normal">Refund this payment, then send a new PayPal checkout so the buyer pays with the new address on file. This is the fix PayPal suggests in the quote below.</p>
+                {rebill && "error" in rebill ? <p role="alert" className="mt-2 text-sm text-red-700 dark:text-red-400">{rebill.error}</p>
+                  : rebill ? (
+                    <div className="mt-2 space-y-1 text-sm font-normal" role="status">
+                      <p>Refund {rebill.refundId} {rebill.refundStatus.toLowerCase()} (debug_id <span className="font-mono text-xs">{rebill.refundDebugId}</span>).</p>
+                      <p>New checkout <a className="underline" href={`/orders/${rebill.newOrderId}`}>{rebill.newOrderId}</a>. Send the buyer its PayPal link.</p>
+                    </div>
+                  ) : (
+                    <button disabled={pending} className={`${primary} mt-3`} onClick={() => start(async () => setRebill(await refundAndRebill(orderId)))}>
+                      Refund ${read.amount ?? amount} and create a new checkout
+                    </button>
+                  )}
               </details>
             </div>
           )}
           {read.flags.map(f => <FlagCard key={f.rule.id} flag={f} />)}
-          <p className="text-xs text-neutral-500">Read by {read.by}. The address comparison is plain code, not the model.</p>
+          <p className="text-xs text-neutral-500">Read by {read.by}. {read.tracking ? `Tracking ${read.tracking.number} from the ${read.trackingFrom}, USPS check digit passed. ` : "No tracking number passed the check digit. "}The address comparison is plain code, not the model.</p>
         </section>
       )}
 

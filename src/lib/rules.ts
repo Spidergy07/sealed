@@ -27,6 +27,12 @@ export const RULES: Rule[] = [
     quote: "Otherwise, it is recommended that you ship all items within 7 days after receipt of payment." },
   { id: "proof", title: "Proof of shipment", severity: "info", ...SP,
     quote: "An online and verifiable tracking number. Date of shipment. An address for the recipient that matches the shipping address on the Transaction Details page." },
+  { id: "inr_delivery", title: "Item Not Received needs proof of delivery", severity: "info", ...SP,
+    quote: "Online or physical documentation from a shipping company that includes: An online and verifiable tracking number. Date of delivery and 'delivered' status. An address for the recipient that matches the shipping address on the Transaction Details page." },
+  { id: "snad", title: "Not as described claims", severity: "block", ...SP,
+    quote: "Items where the buyer claims (either with us or their card issuer) that the item you sent isn't what was ordered (referred to as a Significantly Not as Described claim)." },
+  { id: "card_inr", title: "Item Not Received filed with the card issuer", severity: "block", ...SP,
+    quote: "Item Not Received claims filed by your buyer directly with their card issuer." },
   { id: "us_primary", title: "US primary address", severity: "info", ...SP,
     quote: "The primary address for your PayPal account must be in the United States." },
 ];
