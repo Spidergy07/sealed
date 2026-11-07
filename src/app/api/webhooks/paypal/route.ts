@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     type: event.event_type,
     verified: v.verified,
     verification: v.reason,
-    resourceId: event.resource?.id,
+    resourceId: event.resource?.id ?? event.resource?.dispute_id,
     orderId: event.resource?.supplementary_data?.related_ids?.order_id,
     receivedAt: new Date().toISOString(),
     resource: event.resource,
