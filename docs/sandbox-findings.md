@@ -478,3 +478,11 @@
 - Bank funding alone did not keep a case in INQUIRY: EHT (bank) is CHARGEBACK. Only the untracked case stayed INQUIRY.
 - Every capture with an open case flipped from COMPLETED to PENDING with `status_details.reason: BUYER_COMPLAINT`. The spare capture 6CH777787A478920W (no case) is still COMPLETED.
 - GET /v1/customer/disputes listed all three about 50 min after filing (it was empty right after).
+
+### 2026-11-07 23:30 Thai: packing bench, EasyPost and free vision models
+
+- EasyPost test labels (USPS Priority, 1200x1800 PNG) print "VOID" over every barcode and show `9405 0000 0000 0000 0000 00` as the tracking number. The real test tracking code (for example 9405500208192110884461) only comes back in the API response, and it passes the USPS mod-10 check. So barcode decoding cannot work on test labels; the sample buttons carry their API tracking codes.
+- The made-up Day-0 number 9400111899223197428490 fails the USPS check digit, and PayPal sandbox accepted it on /track anyway.
+- Orders v2 /track with an EasyPost test code: 201, and GET /v1/shipping/trackers?transaction_id= lists it as SHIPPED straight away. Several trackers on one capture are all listed.
+- Free vision: OpenRouter nvidia/nemotron-3.5-super-vl:free read both sample labels correctly in about 10 s (ZIP+4 included). Gemini free tier: gemini-flash-lite-latest with reasoning_effort low took about 2 s; gemini-flash-latest took 80 to 99 s.
+- Production run on https://sealed-silk.vercel.app: wrong-address sample blocked in 8.9 s, reprint to 95131-2021, tracking pushed and read back.
