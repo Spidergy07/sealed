@@ -5,7 +5,7 @@ export type Part = { type: "text"; text: string } | { type: "image_url"; image_u
 export type Msg = { role: "system" | "user" | "assistant"; content: string | Part[] };
 export type LlmResult = { text: string; provider: string; model: string; tried: string[] };
 
-type Provider = { name: string; url: string; key?: string; models: string[]; vision: boolean };
+type Provider = { name: string; url: string; key?: string; models: string[]; vision: boolean; extra?: Record<string, unknown> };
 
 const list = (v: string | undefined, d: string) => (v || d).split(",").map(s => s.trim()).filter(Boolean);
 
@@ -23,8 +23,10 @@ export function providers(env: Record<string, string | undefined> = process.env)
       name: "gemini",
       url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
       key: env.GEMINI_API_KEY,
-      models: list(env.GEMINI_MODELS, "gemini-flash-latest,gemini-flash-lite-latest"),
+      // flash-lite answers in about 2 s on the free tier; flash-latest took 80 s or more in testing.
+      models: list(env.GEMINI_MODELS, "gemini-flash-lite-latest,gemini-flash-latest"),
       vision: true,
+      extra: { reasoning_effort: "low" },
     },
     {
       name: "typhoon",
@@ -55,7 +57,7 @@ export async function chat(
         const r = await fetch(p.url, {
           method: "POST",
           headers: { Authorization: `Bearer ${p.key}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ model, messages, temperature: 0, ...(opts.json ? { response_format: { type: "json_object" } } : {}) }),
+          body: JSON.stringify({ model, messages, temperature: 0, ...p.extra, ...(opts.json ? { response_format: { type: "json_object" } } : {}) }),
           signal: AbortSignal.timeout(opts.timeoutMs ?? 45_000),
         });
         if (r.status === 429 || r.status === 402) cooldown.set(id, Date.now() + 60_000);

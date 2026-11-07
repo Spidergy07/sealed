@@ -102,6 +102,27 @@ export async function syncOrder(id: string): Promise<OrderView> {
   return viewOrder(r.json, r.debugId);
 }
 
+// Orders v2 tracking (the toolkit's tracker tool posts to legacy trackers-batch and ignores errors[]),
+// then PayPal's own tracker list as proof the number is on the transaction.
+export async function addTracking(orderId: string, captureId: string, trackingNumber: string, carrier: string) {
+  const push = await pp("POST", `/v2/checkout/orders/${encodeURIComponent(orderId)}/track`, {
+    capture_id: captureId,
+    tracking_number: trackingNumber,
+    carrier,
+    notify_payer: true,
+  }, { "PayPal-Request-Id": `track-${captureId}-${trackingNumber}` });
+  const back = await pp("GET", `/v1/shipping/trackers?transaction_id=${encodeURIComponent(captureId)}`);
+  const trackers: any[] = back.json?.trackers ?? [];
+  return {
+    ok: push.status < 300,
+    pushStatus: push.status,
+    pushDebugId: push.debugId,
+    error: push.status < 300 ? undefined : JSON.stringify(push.json).slice(0, 300),
+    readBackDebugId: back.debugId,
+    onPayPal: trackers.map(t => ({ number: t.tracking_number as string, carrier: t.carrier as string, status: t.status as string })),
+  };
+}
+
 // verify-webhook-signature answers 200 even for bad signatures, so the decision is on verification_status.
 export async function verifyWebhook(headers: Headers, event: unknown) {
   const webhookId = process.env.PAYPAL_WEBHOOK_ID;

@@ -51,6 +51,9 @@ export default async function Order({ params }: { params: Promise<{ id: string }
             <dt className="text-neutral-500">Covers</dt><dd>{o.sellerProtection?.dispute_categories?.join(", ").replaceAll("_", " ").toLowerCase() || "none"}</dd>
             <dt className="text-neutral-500">debug_id</dt><dd className="font-mono text-xs">{o.debugId}</dd>
           </dl>
+          <Link href={`/orders/${o.id}/pack`} className="block rounded-md bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 px-4 py-2.5 text-center font-medium">
+            Open packing bench
+          </Link>
         </section>
       )}
 
