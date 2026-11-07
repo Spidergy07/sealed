@@ -11,6 +11,8 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // PayPal and Supabase JSON is untyped external data; validation happens where it is used.
+  { rules: { "@typescript-eslint/no-explicit-any": "off" } },
   {
     ignores: [
       "node_modules/**",

@@ -466,3 +466,15 @@
 - Flow: I haven't received the item, Physical product / Computer, "The item hasn't reached me", expected refund, submit. Respond-by date shown: 27 Nov 2026.
 - Right after filing, GET /v1/customer/disputes from the seller app returned 200 with an empty list (debug_id f86571396cb80). Expect the 10 to 30 min list lag other teams reported; check again later.
 - Buyer transaction IDs only appear in the buyer's Activity view, as other teams reported.
+
+### 2026-11-07 22:55 Thai: dispute stages after about 1 h
+
+| Case | Funding | Tracking before case | Stage | Status |
+|---|---|---|---|---|
+| PP-R-EHT-10196991 | bank | USPS via Orders /track | CHARGEBACK | UNDER_REVIEW |
+| PP-R-JTB-10196992 | Visa | UPS via trackers-batch | CHARGEBACK | UNDER_REVIEW |
+| PP-R-SQX-10196993 | bank | none | INQUIRY | WAITING_FOR_SELLER_RESPONSE |
+
+- Bank funding alone did not keep a case in INQUIRY: EHT (bank) is CHARGEBACK. Only the untracked case stayed INQUIRY.
+- Every capture with an open case flipped from COMPLETED to PENDING with `status_details.reason: BUYER_COMPLAINT`. The spare capture 6CH777787A478920W (no case) is still COMPLETED.
+- GET /v1/customer/disputes listed all three about 50 min after filing (it was empty right after).

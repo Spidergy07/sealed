@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 scripts/day0-state.json
+
+# local store
+/.data
