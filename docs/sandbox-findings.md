@@ -453,3 +453,16 @@
 - All four captures came back COMPLETED with seller_protection ELIGIBLE (ITEM_NOT_RECEIVED, UNAUTHORIZED_TRANSACTION) using approve-link wallet checkout.
 - Orders v2 /track returned 201 and GET /v1/shipping/trackers?transaction_id= read it back. trackers-batch also returned 200 with errors [].
 - No webhooks registered on the app yet.
+
+### 2026-11-07 INR cases opened from buyer Resolution Center (about 21:58 to 22:02 Thai)
+| Order | Buyer txn | Seller capture | Funding | Tracking pushed | Case ID |
+|---|---|---|---|---|---|
+| 1 3BT80782H44473250 $780 | 6PX93998VT781561R | 3RT3805171183213T | bank | USPS via Orders /track | PP-R-EHT-10196991 |
+| 2 75937975HE002722M $780 | 99M14303T86568826 | 54R76411E0324562K | Visa | UPS via trackers-batch | PP-R-JTB-10196992 |
+| 3 66425252S3919764L $640 | 2GB15831HG977535H | 9JN43155RM2635829 | bank | none | PP-R-SQX-10196993 |
+| 4 4VW842936V560801J $11.50 | (not read) | 6CH777787A478920W | Visa | none | spare, no case |
+
+- Path: buyer Activity, transaction details, "Report a problem" opens /resolutioncenter/filing/{buyer_txn_id}. The page for order 1 showed "Here's the tracking info for your order" with the USPS number we pushed through the API, before letting the buyer continue. Good shot for the video.
+- Flow: I haven't received the item, Physical product / Computer, "The item hasn't reached me", expected refund, submit. Respond-by date shown: 27 Nov 2026.
+- Right after filing, GET /v1/customer/disputes from the seller app returned 200 with an empty list (debug_id f86571396cb80). Expect the 10 to 30 min list lag other teams reported; check again later.
+- Buyer transaction IDs only appear in the buyer's Activity view, as other teams reported.
