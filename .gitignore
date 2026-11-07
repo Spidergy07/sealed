@@ -44,3 +44,4 @@ scripts/day0-state.json
 
 # local store
 /.data
+!.env.example
