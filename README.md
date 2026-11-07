@@ -14,7 +14,7 @@ PayPal's US Seller Protection terms (updated January 26, 2026) say: "You must sh
 
 ## Try it in two minutes
 
-1. **Packing bench, no phone needed.** Open the demo, pick a paid order (or create one, see step 3), tap **Open packing bench**, then **No box handy? Use a sample photo**.
+1. **Packing bench, no phone needed.** Open https://sealed-silk.vercel.app/orders/6PK48389RF682500D/pack (a paid sandbox order), then tap **No box handy? Use a sample photo**.
    - *Box labeled to the buyer's new address*: the label is read (barcode plus USPS check digit), the ZIP does not match PayPal's ship-to, and you get **Stop. Don't tape this box.** with the exact clause. Tap **Reprint to the address PayPal has on file**, then **Add tracking to PayPal**. Sealed pushes the number with Orders v2 `/track` and reads it back from PayPal's tracker list.
    - *Box labeled to the PayPal address*: the label matches and you can go straight to tracking.
    - You can also upload your own photo with **Photograph the shipping label**.
