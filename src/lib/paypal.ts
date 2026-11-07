@@ -95,7 +95,8 @@ export async function syncOrder(id: string): Promise<OrderView> {
   if (r.status === 404) throw new Error("Order not found in sandbox");
   if (r.json.status === "APPROVED") {
     const c = await pp("POST", `/v2/checkout/orders/${encodeURIComponent(id)}/capture`, undefined, { "PayPal-Request-Id": `capture-${id}` });
-    if (c.status < 300) r = c;
+    // The capture response leaves out items and amount, so read the full order again.
+    if (c.status < 300) r = await pp("GET", `/v2/checkout/orders/${encodeURIComponent(id)}`);
   }
   if (r.status >= 300) throw new Error(`PayPal ${r.status} debug_id ${r.debugId}: ${JSON.stringify(r.json).slice(0, 300)}`);
   return viewOrder(r.json, r.debugId);

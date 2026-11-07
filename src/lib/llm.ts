@@ -23,7 +23,7 @@ export function providers(env: Record<string, string | undefined> = process.env)
       name: "gemini",
       url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
       key: env.GEMINI_API_KEY,
-      models: list(env.GEMINI_MODELS, "gemini-flash-latest"),
+      models: list(env.GEMINI_MODELS, "gemini-flash-latest,gemini-flash-lite-latest"),
       vision: true,
     },
     {
