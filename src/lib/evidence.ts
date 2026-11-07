@@ -68,7 +68,8 @@ export function templateNotes(f: Facts) {
 const SYSTEM = `You write the notes a PayPal dispute reviewer reads first. Use ONLY the facts given as JSON.
 Write plain sentences, no headings, no bullet symbols, no markdown, at most 900 characters.
 Start with what was shipped and to which address, then the carrier and tracking number exactly as given,
-then, only if "label" is present in the facts, that the label was photographed and checked against the Transaction Details address before the box was sealed,
+then, only if "label" is present in the facts, what the packing-bench check found: if label.matchesShipTo is true, the label matched the Transaction Details address;
+if it is false and label.reprintedToZip is set, the first label did not match and a new label was printed to the Transaction Details address before shipping,
 then one line pointing to the attached PDF.
 Never claim delivery unless a tracker status says DELIVERED. Never mention a label check if "label" is absent. Never invent dates, names or numbers.`;
 
