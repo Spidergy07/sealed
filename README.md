@@ -5,7 +5,7 @@
 Sealed is a packing-bench copilot for people who sell used gear (GPUs, cameras, music gear) and get paid with PayPal Goods and Services. Before the box is taped, the seller photographs the shipping label. Sealed compares it with the ship-to address on the PayPal transaction and stops the one mistake that makes a sale ineligible for Seller Protection: shipping somewhere the buyer asked for in chat instead of the Transaction Details address. Then it pushes tracking into the PayPal order, and if a case comes anyway, it turns the same record into evidence the seller approves before anything is filed.
 
 - Live demo: https://sealed-silk.vercel.app (PayPal sandbox, EasyPost test mode, no real money or postage)
-- Video (2:43): https://youtu.be/2rvWA1popC8
+- Video (2:51, screen recording of a live run on 11 Nov 2026): https://youtu.be/Q-JukNkdbRA
 - Built for the PayPal AI Hackathon 2026
 
 ## Why
