@@ -5,7 +5,8 @@ import { recent } from "@/lib/store";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const sales = await recent("sales", 10);
+  // Rows created only to hold a dispute pointer have no title; keep the list to real sales.
+  const sales = (await recent("sales", 30)).filter((s: any) => s.title).slice(0, 8);
   return (
     <main className="mx-auto max-w-xl px-4 py-10 space-y-10">
       <header className="space-y-2">
