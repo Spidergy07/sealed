@@ -511,3 +511,11 @@
 - Third tracked case in a row that PayPal moved to CHARGEBACK within minutes. The one untracked case (SQX) is still INQUIRY with PROOF_OF_FULFILLMENT requested. So in this sandbox, tracking pushed before the case seems to send INR cases straight to CHARGEBACK, where only supporting info is accepted.
 - The capture call succeeded but the GET right after still said APPROVED with no captures. syncOrder now fills the view from the capture response when the read lags.
 - The provide-evidence multipart path is in the code but has not been filed live; the only case offering it (SQX) has no tracking to send.
+
+### 2026-11-11 11:00 Thai: second production run, screen-recorded for the demo video
+
+- Sale 7LY41912WA010812U, capture 2Y026920XY225153U (COMPLETED, ELIGIBLE). Photo of the box labeled to the DM address blocked, read from the barcode; reprinted to 95131-2021; USPS 9405500208192110954621 pushed with Orders /track (debug_id f27852516725b) and read back SHIPPED.
+- Buyer filed Item Not Received at 04:10 UTC: PP-R-SZF-10198750. GET by id: INQUIRY OPEN, then INQUIRY UNDER_REVIEW, then CHARGEBACK UNDER_REVIEW with only `self`. CUSTOMER.DISPUTE.CREATED (already CHARGEBACK in the payload) arrived 04:13:36, UPDATED 04:14:04, both verified; provide_supporting_info appeared a few minutes later.
+- Notes drafted by nvidia/nemotron-3.5-super-vl:free said the first label failed the check and was reprinted, as the prompt now asks. Filed with the PDF: provide-supporting-info HTTP 200, debug_id ca58a7e138a21.
+- Fourth tracked case in a row moved to CHARGEBACK within minutes.
+- PayPal's sandbox sign-in page follows the IP country (Thai here) even with an en-US browser locale; `?locale.x=en_US` on the sign-in URL switches it.
